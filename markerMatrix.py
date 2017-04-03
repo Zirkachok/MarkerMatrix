@@ -10,121 +10,39 @@ __license__ = "GPL"
 
 import sys, os, time
 import zipfile
-import xml.dom.minidom
-import re
 from termcolor import colored, cprint
+import argparse
+import odfManager
 
 
-class OdfReader:
-	markers = []
+def is_valid_file(parser, arg):
+	if not os.path.exists(arg):
+		parser.error("The file %s does not exist!" % arg)
+	else:
+		return arg
 
-	def __init__(self,filename):
-		"""
-		Open an ODF file.
-		"""
-		self.filename = filename
-		self.m_odf = zipfile.ZipFile(filename)
-		self.filelist = self.m_odf.infolist()
-
-	def showManifest(self):
-		"""
-		Just tell me what files exist in the ODF file.
-		"""
-		for s in self.filelist:
-			#print s.orig_filename, s.date_time,
-			s.filename, s.file_size, s.compress_size
-
-	def getRawContents(self):
-		ostr = self.m_odf.read('content.xml')
-		raw = re.sub("<.*?>", "", ostr)
-
-		self.rawText = raw
-
-	def getContents(self):
-		"""
-		Just read the paragraphs from an XML file.
-		"""
-		ostr = self.m_odf.read('content.xml')
-		doc = xml.dom.minidom.parseString(ostr)
-		paras = doc.getElementsByTagName('text:p')
-		print ostr
-		# print "I have ", len(paras), " paragraphs "
-		# self.text_in_paras = []
-		self.text_in_paras = ""
-
-		test = open("text.txt" , "w")
-
-		for p in paras:
-			for ch in p.childNodes:
-				# print ch.nodeType
-				if ch.nodeType == ch.TEXT_NODE:
-					# self.text_in_paras.append(ch.data)
-					# self.text_in_paras += ch.data.encode('utf-8')
-					# print ch.data
-					pass
-
-
-	def findIt(self,name):
-		self.markers = []
-
-		i = 0
-		while i >= 0:
-			(tmp, i) = self.getMarker(self.rawText, name, i)
-			if i > 0:
-				self.markers.append(tmp.encode('utf-8'))
-
-
-		# for s in self.text_in_paras:
-		# 	tmps = s.encode('utf-8')
-		# 	print tmps
-
-		# 	if "["+name in tmps and "]" in tmps:
-		# 		i = 0
-		# 		while i >= 0:
-		# 			(tmp, i) = self.getMarker(tmps, name, i)
-		# 			if i > 0:
-		# 				self.markers.append(tmp.encode('utf-8'))
-		# 				if "[1-SRS-01200" in tmps:
-		# 					print "HERE %s : %s"%(self.filename, tmps)
-
-
-				# if "[1-SRS-00040-07]" in s:
-				# 	print "HERE : %s"%(self.filename)
-
-				# # self.markers.append(XXX)
-				# self.markers.append(s.encode('utf-8'))
-
-	def getMarkers(self):
-		return self.markers
-
-	def fillMarkers(self, lst):
-		for elem in self.markers:
-			if elem in lst:
-				pass
-			else:
-				lst.append(elem)
-
-	def getMarker(self, s, patt, beg):
-		start = s.find("["+patt, beg)
-		end = s.find("]", start)
-
-		if start >= 0 and end > 0:
-			return s[start:end+1], end+1
-		else:
-			return "", -1
+def show_version():
+	print __doc__+"Version V"+__version__+" ; License "+__license__+'\n'
 
 
 if __name__ == '__main__':
-	if len(sys.argv) < 4:
-		print "Usage: %s PATTERN FILE1 FILE2 ..."%(sys.argv[0])
-		sys.exit(0)
-	else:
-		print __doc__+"Version V"+__version__+" ; License "+__license__+'\n'
+	parser = argparse.ArgumentParser()
+	parser.add_argument("docfiles", help="input document to test", metavar="FILE", nargs='+', type=lambda x: is_valid_file(parser, x))
+	parser.add_argument("--pattern", metavar='p', help="Provides a sub-pattern to look for")
+	args = parser.parse_args()
 
-		pattern = sys.argv[1]
-		filelist = []
-		for x in xrange(2,len(sys.argv)):
-			filelist.append(sys.argv[x])
+	if len(args.docfiles) < 2:
+		print "ERROR : at least 2 documents must be provided"
+		sys.exit(0)
+	filelist = args.docfiles
+
+	show_version()
+
+	pattern = ""
+	if args.pattern:
+		print "Sub-pattern \"%s\" provided"%(args.pattern)
+		pattern = args.pattern
+
 
 	outMatrix = open("result.csv", "w")
 
@@ -142,7 +60,7 @@ if __name__ == '__main__':
 			print "ERROR : provided document is not an Open Document File"
 			sys.exit(0)
 
-		myodf = OdfReader(fil) # Create object.
+		myodf = odfManager.Reader(fil) # Create object.
 		# myodf.showManifest()   # Tell me what files we have here
 		myodf.getRawContents()    # Get the raw paragraph text.
 		myodf.findIt(pattern)  # find the phrase ...
