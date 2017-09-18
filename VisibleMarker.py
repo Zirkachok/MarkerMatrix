@@ -75,7 +75,19 @@ if __name__ == '__main__':
 			try:
 				path, markers = parser.launchParse()
 			except AttributeError:
-				print colored.red("ERROR :")
+				print colored.red("ERROR !")
+				sys.exit(-1)
+
+			head, tail = ntpath.split(fil)
+			print colored.yellow("Markers of file %s saved in %s"%(tail or ntpath.basename(head), path))
+
+		elif get_file_type(fil) == "odt":
+			# FILL .....................................................
+			parser = odfManager.Reader(fil)
+			try:
+				path, markers = parser.launchParse()
+			except AttributeError:
+				print colored.red("ERROR !")
 				sys.exit(-1)
 
 			head, tail = ntpath.split(fil)

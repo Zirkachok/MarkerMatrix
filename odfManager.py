@@ -1,29 +1,30 @@
 import xml.dom.minidom
-import zipfile
+
 import re
+import ntpath
+import zipfile
 
 
 class Reader:
 	markers = []
 
-	def __init__(self,filename):
-		"""
-		Open an ODF file.
-		"""
-		self.filename = filename
-		self.m_odf = zipfile.ZipFile(filename)
-		self.filelist = self.m_odf.infolist()
+	# OK
+	def isValidDocxFile(self):
+		if zipfile.is_zipfile(self.filename) == False:
+			return False
 
+		return True
+
+	# OK
 	def showManifest(self):
-		"""
-		Just tell me what files exist in the ODF file.
-		"""
 		for s in self.filelist:
 			#print s.orig_filename, s.date_time,
 			s.filename, s.file_size, s.compress_size
+			if len(s.filename.split(".")) >= 2 and s.filename.split(".")[-1] == "xml":
+				print s.filename
 
 	def getRawContents(self):
-		ostr = self.m_odf.read('content.xml')
+		ostr = self.m_document.read('content.xml')
 		raw = re.sub("<.*?>", "", ostr)
 
 		self.rawText = raw
@@ -32,7 +33,7 @@ class Reader:
 		"""
 		Just read the paragraphs from an XML file.
 		"""
-		ostr = self.m_odf.read('content.xml')
+		ostr = self.m_document.read('content.xml')
 		doc = xml.dom.minidom.parseString(ostr)
 		paras = doc.getElementsByTagName('text:p')
 		print ostr
@@ -52,7 +53,7 @@ class Reader:
 					pass
 
 
-	def findIt(self,name):
+	def findIt(self, name):
 		self.markers = []
 
 		i = 0
@@ -61,26 +62,6 @@ class Reader:
 			if i > 0:
 				self.markers.append(tmp.encode('utf-8'))
 
-
-		# for s in self.text_in_paras:
-		# 	tmps = s.encode('utf-8')
-		# 	print tmps
-
-		# 	if "["+name in tmps and "]" in tmps:
-		# 		i = 0
-		# 		while i >= 0:
-		# 			(tmp, i) = self.getMarker(tmps, name, i)
-		# 			if i > 0:
-		# 				self.markers.append(tmp.encode('utf-8'))
-		# 				if "[1-SRS-01200" in tmps:
-		# 					print "HERE %s : %s"%(self.filename, tmps)
-
-
-				# if "[1-SRS-00040-07]" in s:
-				# 	print "HERE : %s"%(self.filename)
-
-				# # self.markers.append(XXX)
-				# self.markers.append(s.encode('utf-8'))
 
 	def getMarkers(self):
 		return self.markers
@@ -100,3 +81,35 @@ class Reader:
 			return s[start:end+1], end+1
 		else:
 			return "", -1
+
+
+	# OK
+	def launchParse(self):
+		if not self.isValidDocxFile():
+			raise AttributeError("Provided document is not a valid ODF file (%s)"%(self.filename))
+
+		head, tail = ntpath.split(self.filename)
+		if tail:
+			outname = "tmp/" + tail[:-3] + "mark"
+		else:
+			outname = "tmp/" + ntpath.basename(head)[:-3] + "mark"
+
+		outfil = open(outname, "w+")
+
+		self.getRawContents()
+		self.findIt("")
+
+		self.fillMarkers(self.markers)
+
+		for marker in self.markers:
+			outfil.write(marker + "\n")
+
+		outfil.close()
+
+		return outname, self.markers
+
+	# OK
+	def __init__(self, filename):
+		self.filename = filename
+		self.m_document = zipfile.ZipFile(filename)
+		self.filelist = self.m_document.infolist()
