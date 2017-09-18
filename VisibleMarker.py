@@ -47,7 +47,6 @@ def get_file_type(path):
 
 
 def show_version():
-	# os.system('color 3')
 	print colored.blue(__doc__)
 	print colored.blue("Version V" +__version__ + " ; License "+__license__+"\n")
 
