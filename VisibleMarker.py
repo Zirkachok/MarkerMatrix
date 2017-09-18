@@ -69,28 +69,22 @@ if __name__ == '__main__':
 	markers = []
 
 	for fil in filelist:
+		# Select the appropriate parser
 		if get_file_type(fil) == "docx":
 			parser = docxManager.Reader(fil)
-
-			try:
-				path, markers = parser.launchParse()
-			except AttributeError:
-				print colored.red("ERROR !")
-				sys.exit(-1)
-
-			head, tail = ntpath.split(fil)
-			print colored.yellow("Markers of file %s saved in %s"%(tail or ntpath.basename(head), path))
-
 		elif get_file_type(fil) == "odt":
-			# FILL .....................................................
 			parser = odfManager.Reader(fil)
-			try:
-				path, markers = parser.launchParse()
-			except AttributeError:
-				print colored.red("ERROR !")
-				sys.exit(-1)
+		else:
+			print colored.red("ERROR : Unrecognised format %s !"%(get_file_type(fil)))
+			sys.exit(-1)
 
-			head, tail = ntpath.split(fil)
-			print colored.yellow("Markers of file %s saved in %s"%(tail or ntpath.basename(head), path))
+		try:
+			path, markers = parser.launchParse()
+		except AttributeError:
+			print colored.red("ERROR !")
+			sys.exit(-1)
+
+		head, tail = ntpath.split(fil)
+		print colored.yellow("Markers of file %s saved in %s"%(tail or ntpath.basename(head), path))
 
 	print colored.green("\nTraceability matrix Successfully created")
