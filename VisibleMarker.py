@@ -9,6 +9,7 @@ __email__ = "julienbeaudaux@gmail.com"
 __version__ = "1.0"
 __license__ = "GPL"
 
+
 import sys, os, time
 import argparse
 import ntpath
@@ -16,6 +17,7 @@ import ntpath
 import odfManager
 import docxManager
 
+from lxml import etree
 from clint.textui import colored, puts
 
 
@@ -51,40 +53,89 @@ def show_version():
 	print colored.blue("Version V" +__version__ + " ; License "+__license__+"\n")
 
 
+def extract_markers(fil):
+	"""
+	Selects the appropriate parser and request an extraction of markers in the document
+	"""
+
+	if not os.path.isfile(fil):
+		print colored.red("ERROR : Invalid file path %s !"%(fil))
+		sys.exit(-1)
+
+	if get_file_type(fil) == "docx":
+		parser = docxManager.Reader(fil)
+	elif get_file_type(fil) == "odt":
+		parser = odfManager.Reader(fil)
+	else:
+		print colored.red("ERROR : Unrecognised format %s !"%(get_file_type(fil)))
+		sys.exit(-1)
+
+	try:
+		path, markers = parser.launchParse()
+	except AttributeError:
+		print colored.red("ERROR !")
+		sys.exit(-1)
+
+	head, tail = ntpath.split(fil)
+	print colored.yellow("Markers of file %s saved in %s"%(tail or ntpath.basename(head), path))
+
+	return path, markers
+
+
 if __name__ == '__main__':
-	parser = argparse.ArgumentParser()
-	parser.add_argument("docfiles", help="input document to test", metavar="FILE", nargs='+', type=lambda x: is_valid_file(parser, x))
-	# parser.add_argument("--pattern", metavar='p', help="Provides a sub-pattern to look for")
-	args = parser.parse_args()
-
-	if len(args.docfiles) < 2:
-		print "ERROR : at least 2 documents must be provided"
-		sys.exit(0)
-
 	show_version()
 
-	# For each file, build a list of markers present
-	filelist = args.docfiles
+	tmpName = ""
+	tmpReq = []
 
-	markers = []
+	tree = etree.parse("hierarchy.xml")
+	for phase in tree.xpath("/Model/Phase"):
+		tmpPhase = phase.get("ID")
+		print "Phase : %s ( %s )"%(phase.get("name"), phase.get("ID"))
 
-	for fil in filelist:
-		# Select the appropriate parser
-		if get_file_type(fil) == "docx":
-			parser = docxManager.Reader(fil)
-		elif get_file_type(fil) == "odt":
-			parser = odfManager.Reader(fil)
-		else:
-			print colored.red("ERROR : Unrecognised format %s !"%(get_file_type(fil)))
-			sys.exit(-1)
+		for system in phase:
+			if system.get("ID") != None:
+				print "System : %s ( %s )"%(system.get("name"), system.get("ID"))
 
-		try:
-			path, markers = parser.launchParse()
-		except AttributeError:
-			print colored.red("ERROR !")
-			sys.exit(-1)
+			for doc in system:
+				tmpPath = ""
+				tmpMarker = ""
+				tmpMarkPath = ""
+				tmpMarkerList = []
 
-		head, tail = ntpath.split(fil)
-		print colored.yellow("Markers of file %s saved in %s"%(tail or ntpath.basename(head), path))
+				for elem in doc:
+					if elem.tag == "Path":
+						tmpPath = elem.text
+					elif elem.tag == "Req":
+						tmpReq.append(elem.tag)
+					elif elem.tag == "Marker":
+						tmpMarker = elem.tag
 
+				tmpID = tmpPhase + "." + doc.get("ID")
+				tmpMarkPath, tmpMarkerList = extract_markers(tmpPath)
+				print "Doc %s -- ID %s -- Path %s"%(doc.get("name"), tmpID, tmpMarkPath)
+
+
+
+	# XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+	# for system in tree.xpath("/Phase/System"):
+	# 	for doc in 
+	# 	tmpName = doc.get("name")
+	# 	tmpID = doc.get("ID")
+
+	# 	for elem in doc:
+	# 		if elem.tag == "Path":
+	# 			tmpPath = elem.text
+	# 		elif elem.tag == "Req":
+	# 			tmpReq.append(elem.tag)
+	# 		elif elem.tag == "Marker":
+	# 			tmpMarker = elem.tag
+
+	# 	tmpMarkPath, tmpMarkerList = extract_markers(tmpPath)
+	# 	print colored.blue("System %s -- ID %s -- Path %s"%(doc.get("name"), doc.get("ID"), tmpPath))
+
+	# XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+	# Dict = ID, path, markers, req
 	print colored.green("\nTraceability matrix Successfully created")
