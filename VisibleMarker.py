@@ -48,9 +48,9 @@ def get_file_type(path):
 			return ""
 
 
-def show_version():
+def show_version(mode):
 	print colored.blue(__doc__)
-	print colored.blue("Version V" +__version__ + " ; License "+__license__+"\n")
+	print colored.blue("Version V" +__version__ + " ; License "+__license__+" ; "+mode+"\n")
 
 
 def extract_markers(fil):
@@ -77,65 +77,143 @@ def extract_markers(fil):
 		sys.exit(-1)
 
 	head, tail = ntpath.split(fil)
-	print colored.yellow("Markers of file %s saved in %s"%(tail or ntpath.basename(head), path))
 
 	return path, markers
 
 
-if __name__ == '__main__':
-	show_version()
+def hierarchy_mode():
+	outFil = open("tmp/result.txt", "w")
 
-	tmpName = ""
-	tmpReq = []
+	tmpID = ""
 
+	markDict = {}
+
+	# List nodes and their markers list
 	tree = etree.parse("hierarchy.xml")
 	for phase in tree.xpath("/Model/Phase"):
-		tmpPhase = phase.get("ID")
-		print "Phase : %s ( %s )"%(phase.get("name"), phase.get("ID"))
 
 		for system in phase:
-			if system.get("ID") != None:
-				print "System : %s ( %s )"%(system.get("name"), system.get("ID"))
+			# Single-document system
+			if len(system) == 1:
+				tmpID = phase.get("ID") + "." + system[0].get("ID")
 
-			for doc in system:
-				tmpPath = ""
-				tmpMarker = ""
-				tmpMarkPath = ""
-				tmpMarkerList = []
-
-				for elem in doc:
+				for elem in system[0]:
 					if elem.tag == "Path":
-						tmpPath = elem.text
-					elif elem.tag == "Req":
-						tmpReq.append(elem.tag)
-					elif elem.tag == "Marker":
-						tmpMarker = elem.tag
+						tmpMarkPath, tmpMarkerList = extract_markers(elem.text)
 
-				tmpID = tmpPhase + "." + doc.get("ID")
-				tmpMarkPath, tmpMarkerList = extract_markers(tmpPath)
-				print "Doc %s -- ID %s -- Path %s"%(doc.get("name"), tmpID, tmpMarkPath)
+				if tmpID in markDict:
+					sys.exit(-1)
+
+				markDict[tmpID] = tmpMarkerList
+
+			else:
+				tmpID = phase.get("ID") + "." + system.get("ID")
+
+				tmpSysMark = []
+
+				for elem in system:
+					if elem.tag == "Req":
+						pass
+					elif elem.tag == "Doc":
+						tmpID = phase.get("ID") + "." +elem.get("ID")
+
+						for detail in elem:
+							if detail.tag == "Path":
+								tmpMarkPath, tmpMarkerList = extract_markers(detail.text)
+
+						if tmpID in markDict:
+							sys.exit(-1)
+
+						markDict[tmpID] = tmpMarkerList
+						tmpSysMark = list(set(tmpSysMark).union(tmpMarkerList))
+
+					else:
+						pass
+
+				markDict[phase.get("ID") + "." + system.get("ID")] = tmpSysMark
 
 
+	# Test requirements
+	tree = etree.parse("hierarchy.xml")
+	for phase in tree.xpath("/Model/Phase"):
+		outFil.write("Phase %s (%s) : \n"%(phase.get("name"), phase.get("ID")))
+		print colored.blue("Phase %s (%s) : "%(phase.get("name"), phase.get("ID")))
 
-	# XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		for system in phase:
+			tmpID = ""
+			# Single-document system
+			if len(system) == 1:
+				tmpID = phase.get("ID") + "." + system[0].get("ID")
+				outFil.write("\t" + tmpID + "\n")
+				print colored.yellow("\t" + tmpID)
+			else:
+				tmpID = phase.get("ID") + "." + system.get("ID")
+				outFil.write("\t" + tmpID + "\n")
+				print colored.yellow("\t" + tmpID)
 
-	# for system in tree.xpath("/Phase/System"):
-	# 	for doc in 
-	# 	tmpName = doc.get("name")
-	# 	tmpID = doc.get("ID")
+				for doc in system:
+					if doc.tag == "Doc":
+						outFil.write("\t\t" + phase.get("ID") + "." + doc.get("ID") + "\n")
+						print colored.yellow("\t\t" + phase.get("ID") + "." + doc.get("ID"))
 
-	# 	for elem in doc:
-	# 		if elem.tag == "Path":
-	# 			tmpPath = elem.text
-	# 		elif elem.tag == "Req":
-	# 			tmpReq.append(elem.tag)
-	# 		elif elem.tag == "Marker":
-	# 			tmpMarker = elem.tag
+						for elem in doc:
+							if elem.tag == "Req":
+								missings = []
+								for mark in markDict[elem.text]:
+									if mark not in markDict[phase.get("ID") + "." + doc.get("ID")]:
+										missings.append(mark)
+										outFil.write("\t\t\t" + mark + "\n")
+										print colored.red("\t\t\t" + mark)
 
-	# 	tmpMarkPath, tmpMarkerList = extract_markers(tmpPath)
-	# 	print colored.blue("System %s -- ID %s -- Path %s"%(doc.get("name"), doc.get("ID"), tmpPath))
+								if len(missings) == 0:
+									outFil.write("\t\t\tReq %s : requirement fulfilled\n"%(elem.text))
+									print colored.green("\t\t\tReq %s : requirement fulfilled"%(elem.text))
+								else:
+									outFil.write("\t\t\tReq %s : %d markers missing\n"%(elem.text, len(missings)))
+									print colored.red("\t\t\tReq %s : %d markers missing"%(elem.text, len(missings)))
+									pass
 
-	# XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+					elif doc.tag == "Req":
+						missings = []
+						for mark in markDict[doc.text]:
+							outFil.write(phase.get("ID") + "." + system.get("ID") + "\n")
+							if mark not in markDict[phase.get("ID") + "." + system.get("ID")]:
+								# missings.append(mark)
+								outFil.write("\t\t" + mark + "\n")
+								print colored.red("\t\t" + mark)
 
-	# Dict = ID, path, markers, req
+						if len(missings) == 0:
+							outFil.write("\t\tReq %s : requirement fulfilled\n"%(doc.text))
+							print colored.green("\t\tReq %s : requirement fulfilled"%(doc.text))
+						else:
+							outFil.write("\t\tReq %s : %d markers missing\n"%(doc.text, len(missings)))
+							print colored.red("\t\tReq %s : %d markers missing"%(doc.text, len(missings)))
+							pass
+					else:
+						print colored.red("ERROR : Unknow node type %s"%(doc.tag))
+						sys.exit(-1)
+
+	outFil.close()
+
 	print colored.green("\nTraceability matrix Successfully created")
+
+
+if __name__ == '__main__':
+
+	# Documents provided in arguments : compare them
+	if len(sys.argv) >= 4 and (sys.argv[1] == "--compare" or sys.argv[1] == "-c"):
+		show_version("Files comparison mode")
+		sys.exit(0)
+	elif len(sys.argv) >= 2 and (sys.argv[1] == "--model" or sys.argv[1] == "-m"):
+		show_version("Model-based full testing mode")
+		hierarchy_mode()
+	else:
+		print "USAGE : %s [-c FILE1 ... FILEn] [-h]"%(sys.argv[0])
+
+		print "Comparison mode"
+		print "\t--compare, -c : compare files provided in arguments"
+
+		print "Automated mode"
+		print "\t--model, -m : fetches the doc model and tests compliance"
+
+		sys.exit(-1)

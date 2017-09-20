@@ -18,7 +18,7 @@
 
 		<System>
 			<Doc name="Applicable norms list" ID="Norms">
-				<Path>TestDocs/127TEST1.odt</Path>
+				<Path>TestDocs/So-Touch_SPEC.docx</Path>
 				<Marker>NORM</Marker>
 			</Doc>
 		</System>
@@ -30,16 +30,16 @@
 			<Doc name="Functional Specifications" ID="FuncSpec">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
 				<marker>SPEC</marker>
-				<req>UN.Brief</req>
-				<req>DI.Risks</req>
-				<req>UN.Norms</req>
+				<Req>UN.Brief</Req>
+				<Req>DI.Risks</Req>
+				<Req>UN.Norms</Req>
 			</Doc>
 		</System>
 
 		<System>
 			<Doc name="Functional Test Plan" ID="FuncTestPlan">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
-				<req>DI.FuncSpec</req>
+				<Req>DI.FuncSpec</Req>
 			</Doc>
 		</System>
 
@@ -47,61 +47,62 @@
 			<Doc name="Risk Assessment" ID="Risks">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
 				<marker>RISK</marker>
-				<req>UN.Risks</req>
+				<Req>UN.Risks</Req>
 			</Doc>
 		</System>
 	</Phase>
 
 	<Phase name="Design Process" ID="DP">
 		<System name="Sub-system Specifications" ID="SubSysSpec">
+			<Req>DI.FuncSpec</Req>
 			<Doc name="Software Sub-system Specifications" ID="SwSpec">
-				<Path>TestDocs/So-Touch_TEST.docx</Path>
+				<Path>TestDocs/So-Touch_SPEC.docx</Path>
 				<marker>SOFT</marker>
-				<req>DI.FuncSpec</req>
-				<req>DP.Risks</req>
+				<Req>DI.FuncSpec</Req>
+				<Req>DP.Risks</Req>
 			</Doc>
 
 			<Doc name="Hardware Sub-system Specifications" ID="HwSpec">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
 				<marker>HARD</marker>
-				<req>DI.FuncSpec</req>
-				<req>DP.Risks</req>
+				<Req>DI.FuncSpec</Req>
+				<Req>DP.Risks</Req>
 			</Doc>
 
 			<Doc name="Casing Sub-system Specifications" ID="CaseSpec">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
 				<marker>CASE</marker>
-				<req>DI.FuncSpec</req>
-				<req>DI.Risks</req>
+				<Req>DI.FuncSpec</Req>
+				<Req>DI.Risks</Req>
 			</Doc>
 
 			<Doc name="Mechanical Sub-system Specifications" ID="MecaSpec">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
 				<marker>MECA</marker>
-				<req>DI.FuncSpec</req>
-				<req>DI.Risks</req>
+				<Req>DI.FuncSpec</Req>
+				<Req>DI.Risks</Req>
 			</Doc>
 		</System>
 		
 		<System name="Sub-system Test Plan" ID="SubSysTestPlan">
 			<Doc name="Software Sub-system Test Plan" ID="SwTestPlan">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
-				<req>DP.SubSysSpec.SwSpec</req>
+				<Req>DP.SwSpec</Req>
 			</Doc>
 
 			<Doc name="Hardware Sub-system Test Plan" ID="HwTestPlan">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
-				<req>DP.SubSysSpec.HwSpec</req>
+				<Req>DP.HwSpec</Req>
 			</Doc>
 
 			<Doc name="Casing Sub-system Test Plan" ID="CaseTestPlan">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
-				<req>DP.SubSysSpec.CaseSpec</req>
+				<Req>DP.CaseSpec</Req>
 			</Doc>
 
 			<Doc name="Mechanical Sub-system Test Plan" ID="MecaTestPlan">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
-				<req>DP.SubSysSpec.MecaSpec</req>
+				<Req>DP.MecaSpec</Req>
 			</Doc>
 		</System>
 
@@ -109,12 +110,12 @@
 			<Doc name="Risk Assessment" ID="Risks">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
 				<marker>RISK</marker>
-				<req>DI.Risks</req>
+				<Req>DI.Risks</Req>
 			</Doc>
 		</System>
 
 		<System>
-			<Doc name="Sub-system quality requirements" ID="SubSysQualityReq">
+			<Doc name="Sub-system quality Requirements" ID="SubSysQualityReq">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
 				<marker>SUBQ</marker>
 			</Doc>
@@ -123,7 +124,7 @@
 		<System>
 			<Doc name="Sub-system quality evaluation" ID="SubSysQualityEval">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
-				<req>DP.SubSysQualityEval</req>
+				<Req>DP.SubSysQualityEval</Req>
 			</Doc>
 		</System>
 	</Phase>
@@ -133,29 +134,29 @@
 		<System>
 			<Doc name="Functional Test Report" ID="FuncTestReport">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
-				<req>DI.FuncSpec</req>
+				<Req>DI.FuncSpec</Req>
 			</Doc>
 		</System>
 
 		<System name="Sub-system Test Reports" ID="SubSysTestReport">
 			<Doc name="Software Sub-system Test Report" ID="SwTestReport">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
-				<req>DP.SwSpec</req>
+				<Req>DP.SwSpec</Req>
 			</Doc>
 
 			<Doc name="Hardware Sub-system Test Report" ID="HwTestReport">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
-				<req>DP.HwSpec</req>
+				<Req>DP.HwSpec</Req>
 			</Doc>
 
 			<Doc name="Casing Sub-system Test Report" ID="CaseTestReport">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
-				<req>DP.CaseSpec</req>
+				<Req>DP.CaseSpec</Req>
 			</Doc>
 
 			<Doc name="Mechanical Sub-system Test Report" ID="MecaTestReport">
 				<Path>TestDocs/So-Touch_TEST.docx</Path>
-				<req>DP.MecaSpec</req>
+				<Req>DP.MecaSpec</Req>
 			</Doc>
 		</System>
 
