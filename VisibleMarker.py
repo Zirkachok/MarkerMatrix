@@ -20,6 +20,8 @@ import docxManager
 from lxml import etree
 from clint.textui import colored, puts
 
+from xlwt import Workbook
+
 
 supportedFormats = ["odt", "docx", "xlsx"]
 
@@ -171,7 +173,6 @@ def hierarchy_mode():
 								else:
 									outFil.write("\t\t\tReq %s : %d markers missing\n"%(elem.text, len(missings)))
 									print colored.red("\t\t\tReq %s : %d markers missing"%(elem.text, len(missings)))
-									pass
 
 					elif doc.tag == "Req":
 						missings = []
@@ -188,7 +189,6 @@ def hierarchy_mode():
 						else:
 							outFil.write("\t\tReq %s : %d markers missing\n"%(doc.text, len(missings)))
 							print colored.red("\t\tReq %s : %d markers missing"%(doc.text, len(missings)))
-							pass
 					else:
 						print colored.red("ERROR : Unknow node type %s"%(doc.tag))
 						sys.exit(-1)
@@ -196,6 +196,39 @@ def hierarchy_mode():
 	outFil.close()
 
 	print colored.green("\nTraceability matrix Successfully created")
+
+	create_RTM(markDict)
+
+
+def create_RTM(markersDict):
+	lst = []
+
+	# os.remove("VisibleMatrix-RTM.xls")
+
+	book = Workbook()
+	
+	matrix = book.add_sheet('Traceability Matrix')
+
+	i=1
+	for ids in markersDict:
+		lst = list(set(lst).union(markersDict[ids]))
+		matrix.write(0, i, ids)
+		i+=1
+
+	i=1
+	for mark in lst:
+		matrix.write(i, 0, mark)
+		i+=1
+
+	# ligne1 = feuil1.row(1)
+	# ligne1.write(0,'1')
+	# ligne1.write(1,'235.0')
+	# ligne1.write(2,'424.0')
+	# ligne1.write(3,'a')
+
+	matrix.col(0).width = 10000
+
+	book.save("VisibleMatrix-RTM.xls")
 
 
 if __name__ == '__main__':
