@@ -4,7 +4,7 @@
 	<Phase name="User Needs" ID="UN">
 		<System>
 			<Doc name="Design Brief" ID="Brief">
-				<Path>TestDocs/So-Touch_TEST.docx</Path>
+				<Path>TestDocs/NextGen/Next-Gen_Cahier-des-Charges.docx</Path>
 				<Marker>BRIEF</Marker>
 			</Doc>
 		</System>
@@ -28,7 +28,7 @@
 	<Phase name="Design Input" ID="DI">
 		<System>
 			<Doc name="Functional Specifications" ID="FuncSpec">
-				<Path>TestDocs/So-Touch_TEST.docx</Path>
+				<Path>TestDocs/NextGen/Next-Gen_Specifications-Fonctionnelles.docx</Path>
 				<marker>SPEC</marker>
 				<Req>UN.Brief</Req>
 				<Req>DI.Risks</Req>
